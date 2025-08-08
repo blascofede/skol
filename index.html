@@ -57,33 +57,36 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* Pantalla de inicio */
+        /* MODIFICACIÓN CLAVE: Pantalla de inicio desplazable */
         #start-screen {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start; /* Alinea al inicio para mejor scroll */
             width: 100%;
             height: 100%;
             text-align: center;
-            padding: 25px;
+            padding: 40px 25px 25px 25px; /* Más padding arriba */
             box-sizing: border-box;
+            overflow-y: auto; /* Permite scroll vertical si es necesario */
         }
 
         #logo-image {
-            max-width: 75%;
+            max-width: 70%;
             height: auto;
-            margin-bottom: 40px;
+            margin-bottom: 25px;
             filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+            flex-shrink: 0; /* Evita que el logo se encoja */
         }
 
         #player-input-container {
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            margin-bottom: 40px;
+            gap: 12px; /* Menos espacio entre inputs */
+            margin-bottom: 25px;
             width: 85%;
             max-width: 320px;
+            flex-shrink: 0;
         }
 
         #player-count-label, .instruction-text {
@@ -99,12 +102,12 @@
 
         #player-count, .player-name-input {
             width: 100%;
-            padding: 14px;
+            padding: 12px; /* Un poco menos de padding */
             border: 2px solid var(--surface-color);
             border-radius: var(--border-radius);
             background-color: var(--bg-color);
             color: var(--text-color);
-            font-size: 1.1em;
+            font-size: 1em;
             text-align: center;
             transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
             box-sizing: border-box;
@@ -128,6 +131,8 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), inset 0 -2px 5px rgba(0,0,0,0.2);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             text-transform: uppercase;
+            flex-shrink: 0;
+            margin-top: auto; /* Empuja el botón hacia abajo si hay espacio */
         }
 
         .main-button:active {
@@ -135,7 +140,6 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 2px 5px rgba(0,0,0,0.2);
         }
 
-        /* MODIFICACIÓN CLAVE: Layout principal del juego */
         #game-screen {
             display: none; /* Se activa con JS */
             flex-direction: column;
@@ -476,7 +480,7 @@
             <button id="start-game-button" class="main-button">Jugar</button>
         </div>
 
-        <!-- MODIFICACIÓN CLAVE: Se eliminaron los contenedores intermedios -->
+        <!-- Layout de Juego Corregido -->
         <div id="game-screen">
             <div id="player-info">
                 <div id="current-player-name"></div>
