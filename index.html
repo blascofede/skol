@@ -14,7 +14,7 @@
             --primary-color: #ffc400;
             --primary-color-dark: #e6a200;
             --secondary-color: #d32f2f;
-            --success-color: #28a745; /* Añadido para la animación de acierto */
+            --success-color: #28a745;
             --text-color: #f5f5f5;
             --surface-color: #2c313a;
             --surface-gradient: linear-gradient(145deg, #3a3f4c, #252932);
@@ -133,22 +133,13 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 2px 5px rgba(0,0,0,0.2);
         }
 
-        /* --- LAYOUT RESPONSIVE FIX --- */
         #game-screen {
-            display: none; /* Se cambia a flex en JS */
+            display: none;
             flex-direction: column;
             width: 100%;
             height: 100%;
-            padding: 15px 25px 25px 25px;
+            padding: 15px;
             box-sizing: border-box;
-        }
-
-        #game-screen-top, #game-screen-middle, #game-screen-bottom {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
         }
 
         #game-screen-top {
@@ -157,11 +148,17 @@
         
         #game-screen-middle {
             flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             min-height: 0;
+            width: 100%;
         }
 
         #game-screen-bottom {
             flex-shrink: 0;
+            width: 100%;
+            overflow-y: auto; /* Permite scroll si el contenido es muy alto */
         }
 
         #player-info {
@@ -176,7 +173,7 @@
 
         #current-player-name {
             font-family: var(--title-font-family);
-            font-size: 2em;
+            font-size: clamp(1.5em, 5vw, 2em); /* Fuente fluida */
             color: var(--primary-color);
             text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.6);
         }
@@ -188,13 +185,15 @@
             margin-top: 5px;
         }
 
+        /* MODIFICACIÓN CLAVE PARA RESPONSIVE */
         #card-area {
             position: relative;
-            width: 180px;
-            height: 270px;
-            max-width: 100%;
+            width: 45%; /* Ancho relativo a la pantalla */
+            max-width: 180px; /* Tamaño máximo para que no sea gigante en tablets */
+            aspect-ratio: 2 / 3; /* Mantiene la proporción de la carta */
             perspective: 1200px;
-            transform: translateZ(0); 
+            transform: translateZ(0);
+            margin: 10px 0;
         }
 
         .card {
@@ -253,7 +252,7 @@
 
         #question-text {
             font-family: var(--title-font-family);
-            font-size: 1.6em;
+            font-size: clamp(1.3em, 4vw, 1.6em); /* Fuente fluida */
             line-height: 1.3;
             margin-bottom: 15px;
             color: var(--primary-color);
@@ -274,7 +273,7 @@
             padding: 12px 20px;
             border: 2px solid transparent;
             border-radius: 30px;
-            font-size: 1.1em;
+            font-size: clamp(0.9em, 3vw, 1.1em); /* Fuente fluida */
             font-weight: 600;
             cursor: pointer;
             flex-grow: 1;
@@ -295,11 +294,10 @@
             box-shadow: 0 6px 20px rgba(255, 196, 0, 0.4);
         }
         
-        /* FIX: Reintegrado al flujo del layout */
         #feedback-area {
             text-align: center;
             font-weight: bold;
-            min-height: 60px; /* Asegura espacio para el mensaje */
+            min-height: 60px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -333,7 +331,6 @@
             animation: flash-red 1.5s ease-out;
         }
         
-        /* FIX: Añadida animación de acierto */
         .player-info-win-highlight {
             animation: flash-green 1.5s ease-out;
         }
@@ -343,7 +340,6 @@
             50% { background-color: rgba(211, 47, 47, 0.5); box-shadow: 0 0 30px 10px rgba(211, 47, 47, 0.7); }
         }
 
-        /* FIX: Añadida animación de acierto */
         @keyframes flash-green {
             0%, 100% { background-color: rgba(0,0,0,0.2); box-shadow: none; }
             50% { background-color: rgba(40, 167, 69, 0.5); box-shadow: 0 0 30px 10px rgba(40, 167, 69, 0.7); }
@@ -610,14 +606,12 @@
                 input.placeholder = defaultValue;
                 input.value = defaultValue;
 
-                // MODIFICACIÓN: Limpiar el campo al hacer foco si tiene el valor por defecto
                 input.addEventListener('focus', function() {
                     if (this.value === defaultValue) {
                         this.value = '';
                     }
                 });
 
-                // MODIFICACIÓN: Restaurar el valor por defecto si el campo queda vacío
                 input.addEventListener('blur', function() {
                     if (this.value.trim() === '') {
                         this.value = defaultValue;
@@ -744,7 +738,6 @@
             if (isCorrect) {
                 resultMessage.textContent = '¡Te Salvaste!';
                 resultMessage.className = 'result-correct';
-                // FIX: Añadida animación de acierto al área del jugador
                 playerInfoDiv.classList.add('player-info-win-highlight');
                 setTimeout(() => {
                     playerInfoDiv.classList.remove('player-info-win-highlight');
@@ -812,3 +805,4 @@
     </script>
 </body>
 </html>
+
