@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shot o Salvación</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* Variables CSS para colores y fuentes */
+        :root {
+            --bg-color: #1a1d24;
+            --primary-color: #ffc400;
+            --primary-color-dark: #e6a200;
+            --secondary-color: #d32f2f;
+            --success-color: #28a745; /* Añadido para la animación de acierto */
+            --text-color: #f5f5f5;
+            --surface-color: #2c313a;
+            --surface-gradient: linear-gradient(145deg, #3a3f4c, #252932);
+            --font-family: 'Poppins', sans-serif;
+            --title-font-family: 'Playfair Display', serif;
+            --border-radius: 16px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            --transition-speed: 0.3s;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+            background: radial-gradient(circle, #3a3f4c, var(--bg-color));
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            max-width: 450px;
+            display: flex;
+            flex-direction: column;
+            background: var(--surface-gradient);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Pantalla de inicio */
+        #start-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            padding: 25px;
+            box-sizing: border-box;
+        }
+
+        #logo-image {
+            max-width: 75%;
+            height: auto;
+            margin-bottom: 40px;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+        }
+
+        #player-input-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 40px;
+            width: 85%;
+            max-width: 320px;
+        }
+
+        #player-count-label, .instruction-text {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: var(--primary-color);
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+        }
+        
+        .instruction-text {
+             margin-bottom: 5px;
+        }
+
+        #player-count, .player-name-input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--surface-color);
+            border-radius: var(--border-radius);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 1.1em;
+            text-align: center;
+            transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+            box-sizing: border-box;
+        }
+        
+        #player-count:focus, .player-name-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 15px rgba(255, 196, 0, 0.4);
+        }
+
+        .main-button {
+            background: linear-gradient(45deg, var(--primary-color), var(--primary-color-dark));
+            color: #000;
+            padding: 18px 35px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.5em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), inset 0 -2px 5px rgba(0,0,0,0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-transform: uppercase;
+        }
+
+        .main-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* --- LAYOUT RESPONSIVE FIX --- */
+        #game-screen {
+            display: none; /* Se cambia a flex en JS */
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            padding: 15px 25px 25px 25px;
+            box-sizing: border-box;
+        }
+
+        #game-screen-top, #game-screen-middle, #game-screen-bottom {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        #game-screen-top {
+            flex-shrink: 0;
+        }
+        
+        #game-screen-middle {
+            flex-grow: 1;
+            min-height: 0;
+        }
+
+        #game-screen-bottom {
+            flex-shrink: 0;
+        }
+
+        #player-info {
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+            border-radius: var(--border-radius);
+            background: rgba(0,0,0,0.2);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 10px;
+        }
+
+        #current-player-name {
+            font-family: var(--title-font-family);
+            font-size: 2em;
+            color: var(--primary-color);
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.6);
+        }
+
+        #player-shots {
+            font-size: 1.2em;
+            color: var(--secondary-color);
+            font-weight: 700;
+            margin-top: 5px;
+        }
+
+        #card-area {
+            position: relative;
+            width: 180px;
+            height: 270px;
+            max-width: 100%;
+            perspective: 1200px;
+            transform: translateZ(0); 
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            transform-style: preserve-3d;
+            transition: transform 0.7s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        .card-back {
+            background-image: url('assets/reves.png');
+            background-size: cover;
+            background-position: center;
+            transform: rotateY(0deg);
+            border: 3px solid #000;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .card-front {
+            background-color: #fff;
+            transform: rotateY(180deg);
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .card-front img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        #question-area {
+            width: 100%;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        #question-text {
+            font-family: var(--title-font-family);
+            font-size: 1.6em;
+            line-height: 1.3;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
+        }
+
+        #answer-options {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .answer-button {
+            background: linear-gradient(145deg, #4a5058, #3a3f45);
+            color: var(--text-color);
+            padding: 12px 20px;
+            border: 2px solid transparent;
+            border-radius: 30px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            flex-grow: 1;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255,255,255,0.1);
+            transition: all var(--transition-speed) ease;
+        }
+
+        .answer-button:active {
+            transform: scale(0.96);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .answer-button.selected {
+            background: linear-gradient(45deg, var(--primary-color), var(--primary-color-dark));
+            color: #000;
+            border-color: var(--primary-color-dark);
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 196, 0, 0.4);
+        }
+        
+        /* FIX: Reintegrado al flujo del layout */
+        #feedback-area {
+            text-align: center;
+            font-weight: bold;
+            min-height: 60px; /* Asegura espacio para el mensaje */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        @keyframes pulse-success {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .result-correct {
+            font-family: var(--title-font-family);
+            font-size: 2.5em;
+            color: var(--success-color);
+            text-shadow: 0 0 15px var(--success-color), 0 0 30px rgba(40, 167, 69, 0.7);
+            animation: pulse-success 1.5s infinite;
+        }
+
+        @keyframes shake-intense {
+            0%, 100% { transform: translate(0, 0) rotate(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translate(-8px, 0) rotate(-3deg); }
+            20%, 40%, 60%, 80% { transform: translate(8px, 0) rotate(3deg); }
+        }
+        
+        .shot-animation {
+            animation: shake-intense 0.8s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        
+        .player-info-lose-highlight {
+            animation: flash-red 1.5s ease-out;
+        }
+        
+        /* FIX: Añadida animación de acierto */
+        .player-info-win-highlight {
+            animation: flash-green 1.5s ease-out;
+        }
+
+        @keyframes flash-red {
+            0%, 100% { background-color: rgba(0,0,0,0.2); box-shadow: none; }
+            50% { background-color: rgba(211, 47, 47, 0.5); box-shadow: 0 0 30px 10px rgba(211, 47, 47, 0.7); }
+        }
+
+        /* FIX: Añadida animación de acierto */
+        @keyframes flash-green {
+            0%, 100% { background-color: rgba(0,0,0,0.2); box-shadow: none; }
+            50% { background-color: rgba(40, 167, 69, 0.5); box-shadow: 0 0 30px 10px rgba(40, 167, 69, 0.7); }
+        }
+
+        .result-incorrect {
+            font-family: var(--title-font-family);
+            font-size: 3em;
+            color: var(--secondary-color);
+            text-shadow: 0 0 15px var(--secondary-color), 0 0 30px rgba(211, 47, 47, 0.7);
+            animation: shake-intense 0.8s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        .hidden-on-reveal {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        #game-controls {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            gap: 15px;
+        }
+
+        .control-button {
+            background-color: transparent;
+            color: var(--text-color);
+            padding: 10px 20px;
+            border: 2px solid var(--secondary-color);
+            border-radius: 30px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .control-button:hover {
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+        }
+
+        #next-player-button {
+            background: linear-gradient(45deg, var(--primary-color), var(--primary-color-dark));
+            color: #000;
+            border: none;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        #next-player-button:hover {
+             background: linear-gradient(45deg, #ffcf33, #ffb700);
+        }
+
+        /* Modal */
+        #modal-overlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        #modal-content {
+            background: var(--surface-gradient);
+            padding: 35px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            text-align: center;
+            width: 85%;
+            max-width: 380px;
+            border: 1px solid rgba(255, 196, 0, 0.3);
+        }
+
+        #modal-content h2 {
+            font-family: var(--title-font-family);
+            color: var(--primary-color);
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        #modal-content p {
+            font-size: 1.2em;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            color: var(--text-color);
+            white-space: pre-wrap;
+        }
+        
+        .modal-button-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .modal-button {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            transition: all var(--transition-speed) ease;
+        }
+
+        #modal-confirm-button {
+            background: linear-gradient(45deg, var(--primary-color), var(--primary-color-dark));
+            color: #000;
+        }
+        
+        #modal-cancel-button {
+            background: transparent;
+            color: var(--text-color);
+            border: 2px solid var(--secondary-color);
+        }
+        
+        .modal-button:active {
+            transform: scale(0.95);
+        }
+
+        .number-choice-buttons .answer-button {
+            flex-basis: calc(25% - 12px);
+            padding: 10px 5px;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- Pantalla de Inicio -->
+        <div id="start-screen">
+            <img id="logo-image" src="assets/logoskol.png" alt="SKÖL Vinoteca Logo" onerror="this.src='https.placehold.co/250x100/3A3F45/FFCC00?text=SKOL+VINOTECA';">
+            <div id="player-input-container">
+                <label for="player-count" id="player-count-label">¿Cuántos jugadores?</label>
+                <select id="player-count">
+                    <option value="2">2 Jugadores</option>
+                    <option value="3">3 Jugadores</option>
+                    <option value="4">4 Jugadores</option>
+                    <option value="5">5 Jugadores</option>
+                    <option value="6">6 Jugadores</option>
+                    <option value="7">7 Jugadores</option>
+                    <option value="8">8 Jugadores</option>
+                    <option value="9">9 Jugadores</option>
+                    <option value="10">10 Jugadores</option>
+                </select>
+                <div id="player-names-inputs"></div>
+            </div>
+            <button id="start-game-button" class="main-button">Jugar</button>
+        </div>
+
+        <!-- LAYOUT RESPONSIVE FIX -->
+        <div id="game-screen">
+            <div id="game-screen-top">
+                <div id="player-info">
+                    <div id="current-player-name"></div>
+                    <div id="player-shots">Shots: <span>0</span></div>
+                </div>
+            </div>
+            <div id="game-screen-middle">
+                <div id="card-area">
+                    <div id="game-card" class="card">
+                        <div class="card-face card-back"></div>
+                        <div class="card-face card-front">
+                            <img id="card-image" src="" alt="Carta Española" onerror="this.src='https.placehold.co/180x270/8B0000/FFFFFF?text=Carta+No+Encontrada';">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="game-screen-bottom">
+                 <div id="question-area">
+                    <p id="question-text"></p>
+                    <div id="answer-options"></div>
+                </div>
+                <!-- FIX: Movido aquí para que sea parte del flujo del layout -->
+                <div id="feedback-area">
+                    <p id="result-message"></p>
+                </div>
+                <div id="game-controls">
+                    <button id="restart-game-button" class="control-button">Reiniciar Juego</button>
+                    <button id="next-player-button" class="control-button" style="display: none;">Siguiente Jugador</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal -->
+        <div id="modal-overlay">
+            <div id="modal-content">
+                <h2 id="modal-title"></h2>
+                <p id="modal-message"></p>
+                <div class="modal-button-container">
+                    <button id="modal-cancel-button" class="modal-button">Cancelar</button>
+                    <button id="modal-confirm-button" class="modal-button"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Elementos del DOM ---
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const playerCountSelect = document.getElementById('player-count');
+        const playerNamesInputsDiv = document.getElementById('player-names-inputs');
+        const startGameButton = document.getElementById('start-game-button');
+        const playerInfoDiv = document.getElementById('player-info');
+        const currentPlayerNameSpan = document.getElementById('current-player-name');
+        const playerShotsSpan = document.querySelector('#player-shots span');
+        const gameCard = document.getElementById('game-card');
+        const cardImage = document.getElementById('card-image');
+        const questionText = document.getElementById('question-text');
+        const answerOptionsDiv = document.getElementById('answer-options');
+        const resultMessage = document.getElementById('result-message');
+        const restartGameButton = document.getElementById('restart-game-button');
+        const nextPlayerButton = document.getElementById('next-player-button');
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+        const modalConfirmButton = document.getElementById('modal-confirm-button');
+        const modalCancelButton = document.getElementById('modal-cancel-button');
+
+        // --- Variables del Juego ---
+        let players = [];
+        let deck = [];
+        let discardPile = [];
+        let currentCard = null;
+        let previousCard = null;
+        let currentPlayerIndex = 0;
+        let selectedAnswer = null;
+        
+        // --- Definiciones del Juego ---
+        const suits = ['oros', 'copas', 'espadas', 'bastos'];
+        const ranks = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+        const suitAbbreviations = { 'oros': 'oro', 'copas': 'copa', 'espadas': 'espada', 'bastos': 'basto' };
+
+        const questions = [
+            { id: 'mayorMenor5', text: '¿Mayor o menor que 5?', type: 'binary_comparison', options: ['Mayor', 'Menor', 'Exacto 5'], check: (a, c) => (a === 'Mayor') ? c.rank > 5 : (a === 'Menor') ? c.rank < 5 : c.rank === 5 },
+            { id: 'mayorMenor7', text: '¿Mayor o menor que 7?', type: 'binary_comparison', options: ['Mayor', 'Menor', 'Exacto 7'], check: (a, c) => (a === 'Mayor') ? c.rank > 7 : (a === 'Menor') ? c.rank < 7 : c.rank === 7 },
+            { id: 'parImpar', text: '¿Número par o impar?', type: 'binary_comparison', options: ['Par', 'Impar'], check: (a, c) => (a === 'Par') ? c.rank % 2 === 0 : c.rank % 2 !== 0 },
+            { id: 'mismoPaloAnterior', text: '¿Mismo palo que la anterior?', type: 'binary_comparison', options: ['Sí', 'No'], requiresPrevious: true, check: (a, c, p) => (a === 'Sí') ? c.suit === p.suit : c.suit !== p.suit },
+            { id: 'mismoNumeroAnterior', text: '¿Mismo número que la anterior?', type: 'binary_comparison', options: ['Sí', 'No'], requiresPrevious: true, check: (a, c, p) => (a === 'Sí') ? c.rank === p.rank : c.rank !== p.rank },
+            { id: 'numeroEntre2y5', text: '¿La carta está entre 2 y 5?', type: 'binary_comparison', options: ['Sí', 'No'], check: (a, c) => (a === 'Sí') ? c.rank >= 2 && c.rank <= 5 : !(c.rank >= 2 && c.rank <= 5) },
+            { id: 'esPrimo', text: '¿Es un número primo? (2, 3, 5, 7, 11)', type: 'binary_comparison', options: ['Sí', 'No'], check: (a, c) => { const isPrime = [2, 3, 5, 7, 11].includes(c.rank); return (a === 'Sí') ? isPrime : !isPrime; } },
+            { id: 'multiploDe3', text: '¿Es la carta múltiplo de 3?', type: 'binary_comparison', options: ['Sí', 'No'], check: (a, c) => { const isMultiple = c.rank % 3 === 0; return (a === 'Sí') ? isMultiple : !isMultiple; } },
+            { id: 'cartaAlta', text: '¿Es una carta alta? (8 o más)', type: 'binary_comparison', options: ['Sí', 'No'], check: (a, c) => { const isHigh = c.rank >= 8; return (a === 'Sí') ? isHigh : !isHigh; } },
+            { id: 'numeroBajoAlto', text: '¿Número bajo (1-6) o alto (7-12)?', type: 'binary_comparison', options: ['Bajo', 'Alto'], check: (a, c) => (a === 'Bajo') ? c.rank <= 6 : c.rank >= 7 }
+        ];
+
+        // --- Lógica del Juego ---
+        const getCardImagePath = card => `assets/${card.rank}${suitAbbreviations[card.suit]}.png`;
+
+        function generatePlayerNameInputs() {
+            playerNamesInputsDiv.innerHTML = '<p class="instruction-text">¡Nombres de los valientes!</p>';
+            const playerCount = parseInt(playerCountSelect.value);
+            for (let i = 0; i < playerCount; i++) {
+                const input = document.createElement('input');
+                const defaultValue = `Jugador ${i + 1}`;
+                input.type = 'text';
+                input.className = 'player-name-input';
+                input.placeholder = defaultValue;
+                input.value = defaultValue;
+
+                // MODIFICACIÓN: Limpiar el campo al hacer foco si tiene el valor por defecto
+                input.addEventListener('focus', function() {
+                    if (this.value === defaultValue) {
+                        this.value = '';
+                    }
+                });
+
+                // MODIFICACIÓN: Restaurar el valor por defecto si el campo queda vacío
+                input.addEventListener('blur', function() {
+                    if (this.value.trim() === '') {
+                        this.value = defaultValue;
+                    }
+                });
+                
+                playerNamesInputsDiv.appendChild(input);
+            }
+        }
+
+        function createDeck() {
+            return suits.flatMap(suit => ranks.map(rank => ({ rank, suit })));
+        }
+
+        function shuffleDeck(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function initializeGame() {
+            deck = shuffleDeck(createDeck());
+            discardPile = [];
+            currentCard = null;
+            previousCard = null;
+            currentPlayerIndex = 0;
+            selectedAnswer = null;
+            playerInfoDiv.classList.remove('player-info-lose-highlight', 'player-info-win-highlight');
+            currentPlayerNameSpan.classList.remove('shot-animation');
+        }
+
+        function startGame() {
+            const playerNameInputs = document.querySelectorAll('.player-name-input');
+            players = Array.from(playerNameInputs).map((input, index) => {
+                const defaultValue = `Jugador ${index + 1}`;
+                return { 
+                    name: (input.value.trim() && input.value !== defaultValue) ? input.value.trim() : defaultValue, 
+                    shots: 0 
+                };
+            });
+
+
+            if (players.length < 2) {
+                showModal('¡Atención!', 'Se necesitan al menos 2 jugadores.', 'Entendido', () => hideModal());
+                return;
+            }
+
+            initializeGame();
+            startScreen.style.display = 'none';
+            gameScreen.style.display = 'flex';
+            updatePlayerInfo();
+            prepareNextTurn();
+        }
+
+        function updatePlayerInfo() {
+            const player = players[currentPlayerIndex];
+            currentPlayerNameSpan.textContent = player.name;
+            playerShotsSpan.textContent = player.shots;
+        }
+
+        function prepareNextTurn() {
+            gameCard.classList.remove('flipped');
+            resultMessage.textContent = '';
+            resultMessage.className = '';
+            nextPlayerButton.style.display = 'none';
+            answerOptionsDiv.classList.remove('hidden-on-reveal');
+            questionText.classList.remove('hidden-on-reveal');
+
+            if (deck.length === 0) {
+                if (discardPile.length > 0) {
+                    deck = shuffleDeck(discardPile);
+                    discardPile = [];
+                } else {
+                    endGame();
+                    return;
+                }
+            }
+
+            const availableQuestions = questions.filter(q => !q.requiresPrevious || previousCard);
+            const currentQuestion = availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
+            questionText.textContent = currentQuestion.text;
+            
+            answerOptionsDiv.innerHTML = '';
+            currentQuestion.options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.className = 'answer-button';
+                button.dataset.answer = option;
+                answerOptionsDiv.appendChild(button);
+            });
+            
+            gameCard.onclick = () => revealCard(currentQuestion);
+            answerOptionsDiv.onclick = e => {
+                if (e.target.classList.contains('answer-button')) {
+                    selectedAnswer = e.target.dataset.answer;
+                    document.querySelectorAll('.answer-button').forEach(btn => btn.classList.remove('selected'));
+                    e.target.classList.add('selected');
+                }
+            };
+        }
+
+        function revealCard(currentQuestion) {
+            if (!selectedAnswer) {
+                resultMessage.textContent = '¡Elige una respuesta!';
+                return;
+            }
+            gameCard.onclick = null;
+            answerOptionsDiv.onclick = null;
+            
+            previousCard = currentCard;
+            currentCard = deck.shift();
+            cardImage.src = getCardImagePath(currentCard);
+            gameCard.classList.add('flipped');
+
+            setTimeout(() => checkAnswer(currentQuestion), 800);
+        }
+
+        function checkAnswer(currentQuestion) {
+            const player = players[currentPlayerIndex];
+            const isCorrect = currentQuestion.check(selectedAnswer, currentCard, previousCard);
+
+            if (isCorrect) {
+                resultMessage.textContent = '¡Te Salvaste!';
+                resultMessage.className = 'result-correct';
+                // FIX: Añadida animación de acierto al área del jugador
+                playerInfoDiv.classList.add('player-info-win-highlight');
+                setTimeout(() => {
+                    playerInfoDiv.classList.remove('player-info-win-highlight');
+                }, 1500);
+            } else {
+                player.shots++;
+                resultMessage.textContent = '¡SHOT!';
+                resultMessage.className = 'result-incorrect';
+                currentPlayerNameSpan.classList.add('shot-animation');
+                playerInfoDiv.classList.add('player-info-lose-highlight');
+                setTimeout(() => {
+                    currentPlayerNameSpan.classList.remove('shot-animation');
+                    playerInfoDiv.classList.remove('player-info-lose-highlight');
+                }, 1500);
+            }
+            updatePlayerInfo();
+            discardPile.push(currentCard);
+            nextPlayerButton.style.display = 'block';
+        }
+
+        function nextTurn() {
+            selectedAnswer = null;
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+            updatePlayerInfo();
+            prepareNextTurn();
+        }
+
+        function endGame() {
+            let message = 'El mazo se ha agotado. Resultados finales:\n\n';
+            players.sort((a, b) => a.shots - b.shots).forEach(p => {
+                message += `• ${p.name}: ${p.shots} shots\n`;
+            });
+            showModal('¡Juego Terminado!', message, 'Jugar de Nuevo', resetGame, false);
+        }
+
+        function resetGame() {
+            hideModal();
+            gameScreen.style.display = 'none';
+            startScreen.style.display = 'flex';
+            generatePlayerNameInputs();
+        }
+
+        function showModal(title, message, confirmText, confirmCallback, showCancel = false) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modalConfirmButton.textContent = confirmText;
+            modalConfirmButton.onclick = confirmCallback;
+            modalCancelButton.style.display = showCancel ? 'inline-block' : 'none';
+            modalOverlay.style.display = 'flex';
+        }
+
+        function hideModal() {
+            modalOverlay.style.display = 'none';
+        }
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', generatePlayerNameInputs);
+        playerCountSelect.addEventListener('change', generatePlayerNameInputs);
+        startGameButton.addEventListener('click', startGame);
+        restartGameButton.addEventListener('click', () => {
+            showModal('¿Reiniciar?', 'Todo el progreso se perderá.', 'Sí, Reiniciar', resetGame, true);
+        });
+        nextPlayerButton.addEventListener('click', nextTurn); 
+        modalCancelButton.addEventListener('click', hideModal);
+    </script>
+</body>
+</html>
